@@ -1,0 +1,1523 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Coin to Win - TNK Games</title>
+<style>
+  :root {
+    --bg-main: #0a0d14;
+    --bg-card: #141a24;
+    --bg-inner: #0d121c;
+    --border-color: #273142;
+    --accent-gold: #f59e0b;
+    --accent-gold-light: #fbbf24;
+    --accent-blue: #38bdf8;
+    --accent-red: #ef4444;
+    --accent-green: #22c55e;
+    --text-primary: #f0f6fc;
+    --text-secondary: #8b949e;
+    --line-color: #475569;
+  }
+
+  * {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    user-select: none;
+    -webkit-user-select: none;
+  }
+
+  body {
+    background-color: var(--bg-main);
+    color: var(--text-primary);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    overflow-x: hidden;
+    position: relative;
+  }
+
+  /* Canvas Confetti Layer */
+  #celebrationCanvas {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    pointer-events: none;
+    z-index: 999;
+    display: none;
+  }
+
+  /* ================= TOP BANNER / LOGO & WALLET ================= */
+  header.tnk-banner {
+    background: linear-gradient(135deg, #070a10 0%, #151d2e 50%, #0a0d14 100%);
+    border-bottom: 2px solid #233044;
+    padding: 12px 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.6);
+  }
+
+  .logo-container {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+
+  .logo-badge {
+    background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+    color: #111827;
+    font-weight: 900;
+    font-size: 20px;
+    padding: 8px 14px;
+    border-radius: 8px;
+    box-shadow: 0 0 15px rgba(245, 158, 11, 0.4);
+  }
+
+  .logo-text-group {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .logo-title {
+    font-size: 24px;
+    font-weight: 900;
+    letter-spacing: 2px;
+    background: linear-gradient(90deg, #f59e0b, #fbbf24, #ffffff);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    text-transform: uppercase;
+  }
+
+  .logo-subtitle {
+    font-size: 11px;
+    color: var(--text-secondary);
+    letter-spacing: 2.5px;
+    text-transform: uppercase;
+    font-weight: 600;
+  }
+
+  .banner-actions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .wallet-chip {
+    background: rgba(245, 158, 11, 0.12);
+    border: 1px solid rgba(245, 158, 11, 0.4);
+    border-radius: 30px;
+    padding: 6px 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .wallet-amount {
+    font-size: 15px;
+    font-weight: 800;
+    color: var(--accent-gold-light);
+  }
+
+  .btn {
+    padding: 8px 16px;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border: 1px solid transparent;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .btn-gold {
+    background: linear-gradient(135deg, #f59e0b, #d97706);
+    color: #0b0f17;
+    font-weight: 700;
+  }
+  .btn-gold:hover {
+    box-shadow: 0 0 14px rgba(245, 158, 11, 0.5);
+    filter: brightness(1.1);
+  }
+
+  .btn-reset {
+    background: #ef4444;
+    color: #ffffff;
+    border-color: #dc2626;
+  }
+  .btn-reset:hover {
+    background: #dc2626;
+  }
+
+  .btn-secondary {
+    background: #21262d;
+    color: var(--text-primary);
+    border-color: var(--border-color);
+  }
+  .btn-secondary:hover {
+    background: #30363d;
+  }
+
+  /* ================= LAYOUT ================= */
+  .game-container {
+    display: grid;
+    grid-template-columns: minmax(680px, 1fr) 360px;
+    gap: 20px;
+    padding: 20px 24px;
+    max-width: 1480px;
+    width: 100%;
+    margin: 0 auto;
+    flex: 1;
+    align-items: start;
+  }
+
+  @media (max-width: 1100px) {
+    .game-container {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  /* ================= BOARD STAGE ================= */
+  .board-stage {
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+    position: sticky;
+    top: 76px;
+  }
+
+  .board-header {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--border-color);
+  }
+
+  .turn-pill {
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .turn-p1 {
+    background: rgba(239, 68, 68, 0.15);
+    color: #f87171;
+    border: 1px solid rgba(239, 68, 68, 0.4);
+  }
+  .turn-p2 {
+    background: rgba(56, 189, 248, 0.15);
+    color: #38bdf8;
+    border: 1px solid rgba(56, 189, 248, 0.4);
+  }
+
+  .status-prompt {
+    font-size: 13px;
+    color: #cbd5e1;
+    font-weight: 500;
+  }
+
+  .svg-canvas-wrapper {
+    width: 100%;
+    max-width: 820px;
+    background: var(--bg-inner);
+    border-radius: 8px;
+    border: 1px solid #1f2937;
+    overflow: hidden;
+    position: relative;
+  }
+
+  svg.board-svg {
+    display: block;
+    width: 100%;
+    height: auto;
+  }
+
+  .grid-edge {
+    stroke: var(--line-color);
+    stroke-width: 3.5;
+    stroke-linecap: round;
+  }
+
+  .node-bg {
+    cursor: pointer;
+    transition: filter 0.15s ease;
+  }
+  .node-bg:hover {
+    filter: brightness(1.25);
+  }
+
+  .node-selected circle {
+    stroke: #fbbf24 !important;
+    stroke-width: 4 !important;
+    filter: drop-shadow(0 0 8px rgba(251, 191, 36, 0.7));
+  }
+
+  .node-text {
+    font-weight: 700;
+    pointer-events: none;
+    fill: #ffffff;
+    text-anchor: middle;
+    dominant-baseline: central;
+    font-size: 13px;
+  }
+
+  /* ================= SIDEBAR ================= */
+  .sidebar {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    padding: 16px;
+    box-shadow: 0 4px 14px rgba(0,0,0,0.3);
+  }
+
+  .card-title {
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 1.2px;
+    color: var(--text-secondary);
+    font-weight: 700;
+    margin-bottom: 12px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  /* Player Name Setup Card */
+  .players-card {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .player-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: var(--bg-inner);
+    border: 1px solid #232b36;
+    border-radius: 8px;
+    padding: 10px 14px;
+  }
+
+  .player-identity {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .player-avatar {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 800;
+    font-size: 12px;
+  }
+  .avatar-p1 { background: #ef4444; color: #fff; }
+  .avatar-p2 { background: #0284c7; color: #fff; }
+
+  .player-name-text {
+    font-weight: 700;
+    font-size: 14px;
+    color: #f1f5f9;
+  }
+
+  .score-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+  }
+
+  .score-tile {
+    background: var(--bg-inner);
+    border: 1px solid #232b36;
+    border-radius: 8px;
+    padding: 12px;
+    text-align: center;
+  }
+
+  .score-val {
+    font-size: 24px;
+    font-weight: 800;
+    line-height: 1.1;
+  }
+  .score-val.p1-color { color: #f87171; }
+  .score-val.p2-color { color: #38bdf8; }
+  .score-val.gold-color { color: #fbbf24; }
+
+  .score-label {
+    font-size: 11px;
+    color: var(--text-secondary);
+    margin-top: 4px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .p2-mode-toggle {
+    display: flex;
+    gap: 8px;
+    margin-top: 10px;
+  }
+
+  .mode-btn {
+    flex: 1;
+    padding: 8px;
+    background: var(--bg-inner);
+    border: 1px solid #283342;
+    color: var(--text-secondary);
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+  .mode-btn.active {
+    background: rgba(56, 189, 248, 0.15);
+    border-color: #38bdf8;
+    color: #38bdf8;
+  }
+
+  /* ================= WINNING CELEBRATION MODAL ================= */
+  .win-modal-backdrop {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(5, 8, 15, 0.88);
+    backdrop-filter: blur(8px);
+    z-index: 1000;
+    align-items: center;
+    justify-content: center;
+  }
+  .win-modal-backdrop.open {
+    display: flex;
+    animation: fadeInModal 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  @keyframes fadeInModal {
+    from { opacity: 0; transform: scale(0.92); }
+    to { opacity: 1; transform: scale(1); }
+  }
+
+  .win-modal-card {
+    background: linear-gradient(135deg, #101622 0%, #172133 100%);
+    border: 2px solid var(--accent-gold);
+    border-radius: 16px;
+    padding: 36px 32px;
+    max-width: 480px;
+    width: 90%;
+    text-align: center;
+    box-shadow: 0 0 50px rgba(245, 158, 11, 0.4), 0 20px 40px rgba(0,0,0,0.8);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .win-trophy {
+    font-size: 52px;
+    animation: bounceTrophy 1s infinite alternate ease-in-out;
+  }
+  @keyframes bounceTrophy {
+    from { transform: translateY(0) rotate(-3deg); }
+    to { transform: translateY(-10px) rotate(3deg); }
+  }
+
+  .win-header-title {
+    font-size: 28px;
+    font-weight: 900;
+    letter-spacing: 1.5px;
+    background: linear-gradient(90deg, #f59e0b, #fbbf24, #ffffff);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    margin-top: 10px;
+    text-transform: uppercase;
+  }
+
+  .win-player-badge {
+    font-size: 26px;
+    font-weight: 900;
+    color: #ffffff;
+    margin: 12px 0;
+    text-shadow: 0 0 20px rgba(251, 191, 36, 0.8);
+  }
+
+  .win-sub-details {
+    font-size: 14px;
+    color: #cbd5e1;
+    margin-bottom: 20px;
+  }
+
+  .win-coin-award {
+    background: rgba(34, 197, 94, 0.15);
+    border: 1px solid rgba(34, 197, 94, 0.4);
+    border-radius: 30px;
+    padding: 8px 18px;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 15px;
+    font-weight: 800;
+    color: #4ade80;
+    margin-bottom: 24px;
+  }
+
+  /* Edit Names Modal */
+  .modal-backdrop {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.75);
+    z-index: 150;
+    align-items: center;
+    justify-content: center;
+  }
+  .modal-backdrop.open {
+    display: flex;
+  }
+  .modal-window {
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    padding: 24px;
+    max-width: 400px;
+    width: 90%;
+    box-shadow: 0 12px 30px rgba(0,0,0,0.8);
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .input-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .input-label {
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+  }
+  .name-input {
+    background: var(--bg-inner);
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    padding: 10px 12px;
+    color: #ffffff;
+    font-size: 14px;
+    outline: none;
+  }
+  .name-input:focus {
+    border-color: var(--accent-gold);
+  }
+</style>
+<script src="/socket.io/socket.io.js"></script>
+</head>
+<body>
+
+  <!-- Confetti Canvas -->
+  <canvas id="celebrationCanvas"></canvas>
+
+  <!-- ================= TOP BANNER / LOGO ================= -->
+  <header class="tnk-banner">
+    <div class="logo-container">
+      <div class="logo-badge">TNK</div>
+      <div class="logo-text-group">
+        <span class="logo-title">Coin to Win</span>
+        <span class="logo-subtitle">TNK Games Arena</span>
+      </div>
+    </div>
+
+    <div class="banner-actions">
+      <div class="wallet-chip">
+        <span>🪙</span>
+        <span id="topWalletBalance" class="wallet-amount">100</span>
+        <span style="font-size:11px; color:var(--text-secondary); text-transform:uppercase;">Coins</span>
+      </div>
+      <button class="btn btn-secondary" onclick="openNameModal()">✏️ Edit Names</button>
+      <button class="btn btn-reset" onclick="resetGame()">↻ Reset Game</button>
+    </div>
+  </header>
+
+  <!-- ================= MAIN LAYOUT ================= -->
+    <!-- ROOM LOBBY BAR (MULTI-ROOM SUPPORT) -->
+  <div id="lobbyBanner" style="background:#111722; border-bottom:1px solid #233044; padding:12px 24px; display:flex; flex-direction:column; gap:10px;">
+    <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
+      <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
+        <span style="font-size:12px; font-weight:700; color:var(--text-secondary); text-transform:uppercase;">Room Code:</span>
+        <input id="roomInput" type="text" placeholder="e.g. TNK1, LOBBY2" style="background:#0a0d14; border:1px solid #30363d; border-radius:6px; color:#fff; padding:6px 12px; font-size:13px; font-weight:700; outline:none; width:150px;" />
+        <button class="btn btn-gold" onclick="joinOnlineRoom()">Enter / Create Room</button>
+        <button class="btn btn-secondary" onclick="generateRandomRoom()">🎲 Quick Code</button>
+      </div>
+
+      <div id="onlineStatus" style="font-size:12px; font-weight:700; color:var(--accent-gold);">
+        Offline Mode (Enter a room code or click an open room below)
+      </div>
+    </div>
+
+    <!-- Active Open Rooms Waiting for an Opponent -->
+    <div id="openRoomsContainer" style="display:flex; align-items:center; gap:10px; flex-wrap:wrap; font-size:12px; color:var(--text-secondary); padding-top:6px; border-top:1px dashed #232f3e;">
+      <span style="font-weight:700; color:#cbd5e1;">Available Open Rooms:</span>
+      <div id="openRoomsList" style="display:flex; gap:8px; flex-wrap:wrap;">
+        <span style="font-style:italic;">No rooms currently waiting. Create one above!</span>
+      </div>
+    </div>
+  </div>
+
+  <main class="game-container">
+    
+    <!-- STABLE BOARD STAGE -->
+    <section class="board-stage">
+      <div class="board-header">
+        <div id="turnBadge" class="turn-pill turn-p1">
+          <span>🐅</span>
+          <span id="turnText">Turn: Player 1 (Opening)</span>
+        </div>
+        <div id="statusPrompt" class="status-prompt">
+          Awaiting Player 1 move
+        </div>
+      </div>
+
+      <div class="svg-canvas-wrapper">
+        <svg id="boardSvg" class="board-svg" viewBox="-60 -60 1020 620">
+          <defs>
+            <filter id="p1Glow" x="-20%" y="-20%" width="140%" height="140%">
+              <feDropShadow dx="0" dy="0" stdDeviation="4" flood-color="#ef4444" flood-opacity="0.6"/>
+            </filter>
+            <filter id="p2Glow" x="-20%" y="-20%" width="140%" height="140%">
+              <feDropShadow dx="0" dy="0" stdDeviation="4" flood-color="#38bdf8" flood-opacity="0.6"/>
+            </filter>
+          </defs>
+          <g id="edgesGroup"></g>
+          <g id="nodesGroup"></g>
+        </svg>
+      </div>
+    </section>
+
+    <!-- SIDE PANEL -->
+    <aside class="sidebar">
+      
+      <!-- PLAYERS IDENTITY CARD -->
+      <div class="card">
+        <div class="card-title">
+          <span>Match Competitors</span>
+          <button style="background:none; border:none; color:var(--accent-gold); font-size:11px; cursor:pointer;" onclick="openNameModal()">Change</button>
+        </div>
+        <div class="players-card">
+          <div class="player-row">
+            <div class="player-identity">
+              <div id="avatarP1" class="player-avatar avatar-p1">P</div>
+              <span id="labelPlayer1" class="player-name-text">Player 1</span>
+            </div>
+            <span style="font-size:11px; color:#f87171; font-weight:700;">2 Hunters</span>
+          </div>
+
+          <div class="player-row">
+            <div class="player-identity">
+              <div id="avatarP2" class="player-avatar avatar-p2">D</div>
+              <span id="labelPlayer2" class="player-name-text">Player 2</span>
+            </div>
+            <span style="font-size:11px; color:#38bdf8; font-weight:700;">24 Defenders</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- MATCH SCORECARD -->
+      <div class="card">
+        <div class="card-title">
+          <span>Match Scorecard</span>
+          <span id="matchStateBadge" style="color:var(--accent-gold); font-size:11px;">Active</span>
+        </div>
+        <div class="score-grid">
+          <div class="score-tile">
+            <div id="eliminatedVal" class="score-val p1-color">0</div>
+            <div class="score-label">Defenders Captured</div>
+          </div>
+          <div class="score-tile">
+            <div id="reserveVal" class="score-val p2-color">16</div>
+            <div class="score-label">Reserve Available</div>
+          </div>
+          <div class="score-tile">
+            <div id="onBoardVal" class="score-val p2-color">8</div>
+            <div class="score-label">On-Board Pieces</div>
+          </div>
+          <div class="score-tile">
+            <div id="moveCountVal" class="score-val gold-color">0</div>
+            <div class="score-label">Total Moves</div>
+          </div>
+        </div>
+
+        <div id="p2ActionSection" style="margin-top:14px; display:none;">
+          <div style="font-size:11px; color:var(--text-secondary); text-transform:uppercase; font-weight:700; margin-bottom:6px;">
+            <span id="p2ActionHeader">Player 2 Action</span>
+          </div>
+          <div class="p2-mode-toggle">
+            <button id="btnModePlace" class="mode-btn active" onclick="setP2Mode('place')">
+              📥 Place Reserve (<span id="btnReserveCount">16</span>)
+            </button>
+            <button id="btnModeMove" class="mode-btn" onclick="setP2Mode('move')">
+              🔄 Move on Board
+            </button>
+          </div>
+          <div id="p2AutoNotice" style="font-size:11px; color:#38bdf8; margin-top:6px; font-weight:600; display:none;">
+            ✓ All reserves placed. Move mode active!
+          </div>
+        </div>
+      </div>
+
+    </aside>
+
+  </main>
+
+  <!-- ================= EDIT PLAYER NAMES MODAL ================= -->
+  <div id="nameModal" class="modal-backdrop">
+    <div class="modal-window">
+      <div style="display:flex; justify-content:space-between; align-items:center;">
+        <h3 style="font-size:17px; font-weight:800;">Player Name Setup</h3>
+        <button style="background:none; border:none; color:var(--text-secondary); font-size:18px; cursor:pointer;" onclick="closeNameModal()">✕</button>
+      </div>
+
+      <div class="input-group">
+        <label class="input-label">Player 1 Name (Hunters / Red)</label>
+        <input type="text" id="inputP1Name" class="name-input" value="Player 1" placeholder="Enter Player 1 name" />
+      </div>
+
+      <div class="input-group">
+        <label class="input-label">Player 2 Name (Defenders / Blue)</label>
+        <input type="text" id="inputP2Name" class="name-input" value="Player 2" placeholder="Enter Player 2 name" />
+      </div>
+
+      <button class="btn btn-gold" style="width:100%; justify-content:center; padding:10px;" onclick="savePlayerNames()">
+        Save Names & Play
+      </button>
+    </div>
+  </div>
+
+  <!-- ================= WINNING CELEBRATION MODAL ================= -->
+  <div id="winModal" class="win-modal-backdrop">
+    <div class="win-modal-card">
+      <div class="win-trophy">🏆</div>
+      <div class="win-header-title">MATCH WINNER!</div>
+      <div id="winPlayerName" class="win-player-badge">PLAYER 1</div>
+      <div id="winDetails" class="win-sub-details">Captured 12 defenders to secure victory!</div>
+      <div class="win-coin-award">
+        <span>🪙</span>
+        <span>+25 COINS CREDITED TO WALLET</span>
+      </div>
+      <div>
+        <button class="btn btn-gold" style="font-size:15px; padding:12px 28px;" onclick="closeWinModalAndReset()">
+          Play Next Match ↻
+        </button>
+      </div>
+    </div>
+  </div>
+
+<script>
+// ==========================================
+// 1. EXACT GRAPH GEOMETRY (37 NODES, NO HINTS)
+// ==========================================
+const coords = {
+  1: [0, 4],  4: [0, 2],  5: [0, 0],
+  2: [1, 3],  6: [1, 2],  7: [1, 1],
+  8: [2, 4],  9: [3, 4], 10: [4, 4], 11: [5, 4], 12: [6, 4],
+  13: [2, 3], 14: [3, 3], 15: [4, 3], 16: [5, 3], 17: [6, 3],
+  3: [2, 2], 18: [3, 2], 19: [4, 2], 20: [5, 2], 21: [6, 2],
+  22: [2, 1], 23: [3, 1], 24: [4, 1], 25: [5, 1], 26: [6, 1],
+  27: [2, 0], 28: [3, 0], 29: [4, 0], 30: [5, 0], 31: [6, 0],
+  32: [7, 3], 37: [7, 2], 36: [7, 1],
+  33: [8, 4], 34: [8, 2], 35: [8, 0]
+};
+
+const edges = [
+  // Left Triangle
+  [1, 4], [4, 5], [2, 6], [6, 7], [4, 6], [6, 3], [1, 2], [2, 3], [5, 7], [7, 3],
+  // Horizontal grid lines
+  [8, 9], [9, 10], [10, 11], [11, 12],
+  [13, 14], [14, 15], [15, 16], [16, 17],
+  [3, 18], [18, 19], [19, 20], [20, 21],
+  [22, 23], [23, 24], [24, 25], [25, 26],
+  [27, 28], [28, 29], [29, 30], [30, 31],
+  // Vertical grid lines
+  [8, 13], [13, 3], [3, 22], [22, 27],
+  [9, 14], [14, 18], [18, 23], [23, 28],
+  [10, 15], [15, 19], [19, 24], [24, 29],
+  [11, 16], [16, 20], [20, 25], [25, 30],
+  [12, 17], [17, 21], [21, 26], [26, 31],
+  // Diagonals
+  [8, 14], [14, 19], [19, 25], [25, 31],
+  [27, 23], [23, 19], [19, 16], [16, 12],
+  [10, 14], [14, 3], [3, 23], [23, 29],
+  [10, 16], [16, 21], [21, 25], [25, 29],
+  // Right Triangle
+  [32, 37], [37, 36], [33, 34], [34, 35],
+  [21, 37], [37, 34], [21, 32], [32, 33], [21, 36], [36, 35]
+];
+
+function toSvgX(gx) { return gx * 110 + 10; }
+function toSvgY(gy) { return (4 - gy) * 115 + 15; }
+
+// ==========================================
+// 2. STATE & NAMES
+// ==========================================
+let player1Name = "Player 1";
+let player2Name = "Player 2";
+let playerBalance = 100;
+const MATCH_WIN_REWARD = 25;
+
+let p1Pieces = [19, 19];
+let p2Pieces = [14, 15, 16, 18, 20, 23, 24, 25];
+let reserveP2 = 16;
+let eliminatedP2 = 0;
+let turn = "P1";
+let firstP1Turn = true;
+let openingP1Index = 0;
+let selectedP1Index = null;
+let selectedP2Node = null;
+let p2Mode = "place";
+  selectedP2Node = null;
+let totalMoves = 0;
+let gameOver = false;
+
+// Audio
+const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+function playTone(freq, type = 'sine', duration = 0.12) {
+  try {
+    if (audioCtx.state === 'suspended') audioCtx.resume();
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.type = type;
+    osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+    gain.gain.setValueAtTime(0.15, audioCtx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
+    osc.connect(gain);
+    gain.connect(audioCtx.destination);
+    osc.start();
+    osc.stop(audioCtx.currentTime + duration);
+  } catch(e) {}
+}
+
+// Modal & Names
+function openNameModal() {
+  document.getElementById("inputP1Name").value = player1Name;
+  document.getElementById("inputP2Name").value = player2Name;
+  document.getElementById("nameModal").classList.add("open");
+}
+
+function closeNameModal() {
+  document.getElementById("nameModal").classList.remove("open");
+}
+
+function savePlayerNames() {
+  const p1Val = document.getElementById("inputP1Name").value.trim();
+  const p2Val = document.getElementById("inputP2Name").value.trim();
+  if (p1Val) player1Name = p1Val;
+  if (p2Val) player2Name = p2Val;
+
+  const p1Init = (player1Name && player1Name.trim().length > 0) ? player1Name.trim().charAt(0).toUpperCase() : "1";
+  const p2Init = (player2Name && player2Name.trim().length > 0) ? player2Name.trim().charAt(0).toUpperCase() : "2";
+
+  document.getElementById("labelPlayer1").textContent = player1Name;
+  document.getElementById("labelPlayer2").textContent = player2Name;
+  document.getElementById("avatarP1").textContent = p1Init;
+  document.getElementById("avatarP2").textContent = p2Init;
+  document.getElementById("p2ActionHeader").textContent = `${player2Name} Action`;
+
+  closeNameModal();
+  renderBoard();
+  updateUIElements();
+}
+
+// Collinear Jump Logic
+function findMiddle(start, end) {
+  const [sx, sy] = coords[start];
+  const [ex, ey] = coords[end];
+  const midX = (sx + ex) / 2.0;
+  const midY = (sy + ey) / 2.0;
+
+  let candidate = null;
+  for (const [nodeStr, [nx, ny]] of Object.entries(coords)) {
+    if (nx === midX && ny === midY) {
+      candidate = parseInt(nodeStr);
+      break;
+    }
+  }
+  if (candidate === null) return null;
+
+  const leg1 = edges.some(([u, v]) => (u === start && v === candidate) || (v === start && u === candidate));
+  const leg2 = edges.some(([u, v]) => (u === candidate && v === end) || (v === candidate && u === end));
+
+  return (leg1 && leg2) ? candidate : null;
+}
+
+function isEdge(u, v) {
+  return edges.some(([a, b]) => (a === u && b === v) || (a === v && b === u));
+}
+
+function checkP1Trapped() {
+  for (const p of p1Pieces) {
+    for (const nodeStr of Object.keys(coords)) {
+      const target = parseInt(nodeStr);
+      if (p1Pieces.includes(target) || p2Pieces.includes(target)) continue;
+      if (isEdge(p, target)) return false;
+      const mid = findMiddle(p, target);
+      if (mid && p2Pieces.includes(mid)) return false;
+    }
+  }
+  return true;
+}
+
+// Board Rendering (NO HINTS)
+function renderBoard() {
+  const edgesGroup = document.getElementById("edgesGroup");
+  const nodesGroup = document.getElementById("nodesGroup");
+  edgesGroup.innerHTML = "";
+  nodesGroup.innerHTML = "";
+
+  edges.forEach(([u, v]) => {
+    const [x1, y1] = [toSvgX(coords[u][0]), toSvgY(coords[u][1])];
+    const [x2, y2] = [toSvgX(coords[v][0]), toSvgY(coords[v][1])];
+    const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
+    line.setAttribute("x1", x1);
+    line.setAttribute("y1", y1);
+    line.setAttribute("x2", x2);
+    line.setAttribute("y2", y2);
+    line.setAttribute("class", "grid-edge");
+    edgesGroup.appendChild(line);
+  });
+
+  for (const [nodeStr, [gx, gy]] of Object.entries(coords)) {
+    const node = parseInt(nodeStr);
+    const cx = toSvgX(gx);
+    const cy = toSvgY(gy);
+
+    const isP1 = p1Pieces.includes(node);
+    const isP2 = p2Pieces.includes(node);
+    const p1Count = p1Pieces.filter(p => p === node).length;
+
+    const g = document.createElementNS("http://www.w3.org/2000/svg", "g");
+    g.setAttribute("class", "node-bg");
+    g.onclick = () => onNodeClicked(node);
+
+    const isSelected = (turn === "P1" && selectedP1Index !== null && p1Pieces[selectedP1Index] === node) ||
+                       (turn === "P2" && selectedP2Node === node);
+    if (isSelected) g.classList.add("node-selected");
+
+    const circle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+    circle.setAttribute("cx", cx);
+    circle.setAttribute("cy", cy);
+    circle.setAttribute("stroke", "#ffffff");
+
+    const text = document.createElementNS("http://www.w3.org/2000/svg", "text");
+    text.setAttribute("x", cx);
+    text.setAttribute("y", cy);
+    text.setAttribute("class", "node-text");
+
+    const p1Initial = (player1Name && player1Name.trim().length > 0) ? player1Name.trim().charAt(0).toUpperCase() : "1";
+    const p2Initial = (player2Name && player2Name.trim().length > 0) ? player2Name.trim().charAt(0).toUpperCase() : "2";
+
+    if (isP1) {
+      circle.setAttribute("r", 22);
+      circle.setAttribute("fill", "#ef4444");
+      circle.setAttribute("stroke-width", "2.5");
+      circle.setAttribute("filter", "url(#p1Glow)");
+      text.textContent = p1Count > 1 ? `${p1Initial} x${p1Count}` : p1Initial;
+      text.style.fontSize = "14px";
+      text.style.fill = "#ffffff";
+    } else if (isP2) {
+      circle.setAttribute("r", 18);
+      circle.setAttribute("fill", "#0284c7");
+      circle.setAttribute("stroke-width", "2");
+      circle.setAttribute("filter", "url(#p2Glow)");
+      text.textContent = p2Initial;
+      text.style.fontSize = "13px";
+      text.style.fill = "#ffffff";
+    } else {
+      circle.setAttribute("r", 12);
+      circle.setAttribute("fill", "#1a2332");
+      circle.setAttribute("stroke-width", "1.5");
+      circle.setAttribute("stroke", "#475569");
+      text.textContent = ""; // No numbers on empty nodes
+    }
+
+    g.appendChild(circle);
+    g.appendChild(text);
+    nodesGroup.appendChild(g);
+  }
+
+  updateUIElements();
+}
+
+function updateUIElements() {
+  document.getElementById("eliminatedVal").textContent = eliminatedP2;
+  document.getElementById("reserveVal").textContent = reserveP2;
+  document.getElementById("onBoardVal").textContent = p2Pieces.length;
+  document.getElementById("moveCountVal").textContent = totalMoves;
+  document.getElementById("btnReserveCount").textContent = reserveP2;
+  document.getElementById("topWalletBalance").textContent = playerBalance;
+
+  const turnBadge = document.getElementById("turnBadge");
+  const turnText = document.getElementById("turnText");
+  const prompt = document.getElementById("statusPrompt");
+  const p2Controls = document.getElementById("p2ActionSection");
+
+  if (gameOver) return;
+
+  // Auto-switch to move mode when reserves are exhausted
+  if (reserveP2 <= 0 && p2Mode === "place") {
+    p2Mode = "move";
+  }
+
+  const btnModePlace = document.getElementById("btnModePlace");
+  const btnModeMove = document.getElementById("btnModeMove");
+  const p2AutoNotice = document.getElementById("p2AutoNotice");
+
+  if (reserveP2 <= 0) {
+    btnModePlace.disabled = true;
+    btnModePlace.style.opacity = "0.4";
+    btnModePlace.style.cursor = "not-allowed";
+    btnModePlace.classList.remove("active");
+    btnModeMove.classList.add("active");
+    if (p2AutoNotice) p2AutoNotice.style.display = "block";
+  } else {
+    btnModePlace.disabled = false;
+    btnModePlace.style.opacity = "1";
+    btnModePlace.style.cursor = "pointer";
+    btnModePlace.classList.toggle("active", p2Mode === "place");
+    btnModeMove.classList.toggle("active", p2Mode === "move");
+    if (p2AutoNotice) p2AutoNotice.style.display = "none";
+  }
+
+  if (turn === "P1") {
+    turnBadge.className = "turn-pill turn-p1";
+    p2Controls.style.display = "none";
+    if (firstP1Turn) {
+      turnText.textContent = `Turn: ${player1Name} (Opening)`;
+      prompt.textContent = `Awaiting ${player1Name} move`;
+    } else {
+      turnText.textContent = `Turn: ${player1Name}`;
+      prompt.textContent = selectedP1Index === null ? `Select ${player1Name} piece` : `Piece selected`;
+    }
+  } else {
+    turnBadge.className = "turn-pill turn-p2";
+    turnText.textContent = `Turn: ${player2Name}`;
+    p2Controls.style.display = "block";
+
+    if (reserveP2 > 0 && p2Mode === "place") {
+      prompt.textContent = `Place piece for ${player2Name} (${reserveP2} left)`;
+    } else {
+      prompt.textContent = selectedP2Node === null ? `Select ${player2Name} piece on board` : `Piece selected`;
+    }
+  }
+}
+
+// Move Handlers
+function onNodeClicked(node) {
+  if (gameOver) return;
+  // If in online room, enforce turns according to player role
+  if (currentRoomId && myRole) {
+    if (turn === "P1" && myRole !== "P1") {
+      return; // It's Player 1's turn, Player 2 cannot touch
+    }
+    if (turn === "P2" && myRole !== "P2") {
+      return; // It's Player 2's turn, Player 1 cannot touch
+    }
+  }
+  if (turn === "P1") handleP1Turn(node);
+  else handleP2Turn(node);
+}
+
+function handleP1Turn(target) {
+  if (firstP1Turn) {
+    const start = 19;
+    if (target === 19 || p1Pieces.includes(target) || p2Pieces.includes(target)) {
+      playTone(140, 'square');
+      return;
+    }
+    const mid = findMiddle(start, target);
+    if (mid && p2Pieces.includes(mid)) {
+      p2Pieces = p2Pieces.filter(m => m !== mid);
+      p1Pieces[openingP1Index] = target;
+      eliminatedP2++;
+      totalMoves++;
+      playTone(220, 'sawtooth', 0.22);
+      broadcastMove(220);
+      if (openingP1Index === 0) openingP1Index = 1;
+      else { firstP1Turn = false; turn = "P2"; }
+      renderBoard();
+      checkWinConditions();
+    } else {
+      playTone(140, 'square');
+    }
+    return;
+  }
+
+  if (selectedP1Index === null) {
+    if (p1Pieces[0] === target) { selectedP1Index = 0; renderBoard(); }
+    else if (p1Pieces[1] === target) { selectedP1Index = 1; renderBoard(); }
+    else { playTone(140, 'square'); }
+    return;
+  }
+
+  const start = p1Pieces[selectedP1Index];
+  if (target === start) { selectedP1Index = null; renderBoard(); return; }
+  if (p1Pieces.includes(target)) { selectedP1Index = p1Pieces.indexOf(target); renderBoard(); return; }
+  if (p2Pieces.includes(target)) { playTone(140, 'square'); return; }
+
+  if (isEdge(start, target)) {
+    p1Pieces[selectedP1Index] = target;
+    selectedP1Index = null;
+    totalMoves++;
+    turn = "P2";
+    playTone(380, 'sine', 0.1);
+    broadcastMove(380);
+    renderBoard();
+    checkWinConditions();
+    return;
+  }
+
+  const mid = findMiddle(start, target);
+  if (mid && p2Pieces.includes(mid)) {
+    p2Pieces = p2Pieces.filter(m => m !== mid);
+    p1Pieces[selectedP1Index] = target;
+    selectedP1Index = null;
+    eliminatedP2++;
+    totalMoves++;
+    playTone(220, 'sawtooth', 0.22);
+    broadcastMove(220);
+    renderBoard();
+    checkWinConditions();
+    return;
+  }
+
+  playTone(140, 'square');
+}
+
+function handleP2Turn(target) {
+  // Automatically enforce move mode if reserves are completed
+  if (reserveP2 <= 0) {
+    p2Mode = "move";
+  }
+
+  // 1. Placement phase (when reserve is available and in place mode)
+  if (p2Mode === "place" && reserveP2 > 0) {
+    // If player clicked an empty spot -> Place piece
+    if (!p1Pieces.includes(target) && !p2Pieces.includes(target)) {
+      p2Pieces.push(target);
+      reserveP2--;
+      totalMoves++;
+
+      // Automatically transition to move mode when last reserve piece is placed
+      if (reserveP2 === 0) {
+        p2Mode = "move";
+      }
+
+      turn = "P1";
+      playTone(380, 'sine', 0.1);
+      renderBoard();
+      checkWinConditions();
+      return;
+    }
+
+    // Intuitive convenience: If player clicks on their own piece on board, select it and switch to move
+    if (p2Pieces.includes(target)) {
+      p2Mode = "move";
+      selectedP2Node = target;
+      renderBoard();
+      return;
+    }
+
+    playTone(140, 'square');
+    return;
+  }
+
+  // 2. Move phase (Reserves completed or user opted to move)
+  if (selectedP2Node === null) {
+    if (p2Pieces.includes(target)) {
+      selectedP2Node = target;
+      renderBoard();
+    } else {
+      playTone(140, 'square');
+    }
+    return;
+  }
+
+  const start = selectedP2Node;
+
+  // Deselect if clicked same piece
+  if (target === start) {
+    selectedP2Node = null;
+    renderBoard();
+    return;
+  }
+
+  // Switch selection if clicked another of their pieces
+  if (p2Pieces.includes(target)) {
+    selectedP2Node = target;
+    renderBoard();
+    return;
+  }
+
+  // Cannot step onto Player 1
+  if (p1Pieces.includes(target)) {
+    playTone(140, 'square');
+    return;
+  }
+
+  // Step 1 edge to adjacent empty node
+  if (isEdge(start, target)) {
+    p2Pieces[p2Pieces.indexOf(start)] = target;
+    selectedP2Node = null;
+    totalMoves++;
+    turn = "P1";
+    playTone(380, 'sine', 0.1);
+    broadcastMove(380);
+    renderBoard();
+    checkWinConditions();
+  } else {
+    playTone(140, 'square');
+  }
+}
+
+function setP2Mode(mode) {
+  if (mode === "place" && reserveP2 <= 0) return; // Cannot place when reserves completed
+  p2Mode = mode;
+  selectedP2Node = null;
+  renderBoard();
+}
+
+// ==========================================
+// 3. WINNING CHECK & FULL ANIMATION TRIGGER
+// ==========================================
+function checkWinConditions() {
+  if (eliminatedP2 >= 12) {
+    triggerWinCelebration(player1Name, `Captured 12 defenders to claim the championship bounty!`);
+    return;
+  }
+  if (turn === "P1" && !firstP1Turn && checkP1Trapped()) {
+    triggerWinCelebration(player2Name, `Completely trapped both hunters to claim the championship bounty!`);
+    return;
+  }
+}
+
+function triggerWinCelebration(winnerName, reasonText) {
+  gameOver = true;
+  playerBalance += MATCH_WIN_REWARD;
+  document.getElementById("topWalletBalance").textContent = playerBalance;
+  document.getElementById("matchStateBadge").textContent = `${winnerName} Won!`;
+  document.getElementById("matchStateBadge").style.color = "#4ade80";
+
+  document.getElementById("winPlayerName").textContent = winnerName.toUpperCase();
+  document.getElementById("winDetails").textContent = reasonText;
+
+  // Open modal
+  const modal = document.getElementById("winModal");
+  modal.classList.add("open");
+
+  // Play fanfare tone
+  playTone(523, 'triangle', 0.15);
+  setTimeout(() => playTone(659, 'triangle', 0.15), 160);
+  setTimeout(() => playTone(784, 'triangle', 0.3), 320);
+
+  // Start Confetti & Sparkles
+  startCelebrationAnimation();
+}
+
+function closeWinModalAndReset() {
+  document.getElementById("winModal").classList.remove("open");
+  stopCelebrationAnimation();
+  resetGame();
+}
+
+// Reset Game
+function resetGame() {
+  if (socket && currentRoomId) { socket.emit("reset_game", { roomId: currentRoomId }); }
+  p1Pieces = [19, 19];
+  p2Pieces = [14, 15, 16, 18, 20, 23, 24, 25];
+  reserveP2 = 16;
+  eliminatedP2 = 0;
+  turn = "P1";
+  firstP1Turn = true;
+  openingP1Index = 0;
+  selectedP1Index = null;
+  selectedP2Node = null;
+  p2Mode = "place";
+  selectedP2Node = null;
+  totalMoves = 0;
+  gameOver = false;
+
+  document.getElementById("matchStateBadge").textContent = "Active";
+  document.getElementById("matchStateBadge").style.color = "var(--accent-gold)";
+  renderBoard();
+}
+
+// ==========================================
+// 4. CONFETTI & SPARKLES ANIMATION ENGINE
+// ==========================================
+const canvas = document.getElementById("celebrationCanvas");
+const ctx = canvas.getContext("2d");
+let animFrameId = null;
+let particles = [];
+
+function resizeCanvas() {
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+}
+window.addEventListener("resize", resizeCanvas);
+
+function startCelebrationAnimation() {
+  resizeCanvas();
+  canvas.style.display = "block";
+  particles = [];
+
+  const colors = ["#f59e0b", "#fbbf24", "#ef4444", "#38bdf8", "#22c55e", "#ffffff", "#ec4899"];
+
+  // 150 Confetti + 60 Sparkle Stars
+  for (let i = 0; i < 200; i++) {
+    particles.push({
+      x: Math.random() * canvas.width,
+      y: Math.random() * -canvas.height * 0.5,
+      w: Math.random() * 9 + 4,
+      h: Math.random() * 12 + 6,
+      color: colors[Math.floor(Math.random() * colors.length)],
+      vx: (Math.random() - 0.5) * 4,
+      vy: Math.random() * 4 + 3,
+      angle: Math.random() * 360,
+      rotSpeed: (Math.random() - 0.5) * 8,
+      type: Math.random() > 0.35 ? 'confetti' : 'sparkle',
+      size: Math.random() * 4 + 2,
+      opacity: 1
+    });
+  }
+
+  animateParticles();
+}
+
+function animateParticles() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  particles.forEach(p => {
+    p.x += p.vx;
+    p.y += p.vy;
+    p.angle += p.rotSpeed;
+
+    if (p.y > canvas.height) {
+      p.y = -10;
+      p.x = Math.random() * canvas.width;
+    }
+
+    ctx.save();
+    ctx.translate(p.x, p.y);
+    ctx.rotate((p.angle * Math.PI) / 180);
+
+    if (p.type === 'confetti') {
+      ctx.fillStyle = p.color;
+      ctx.fillRect(-p.w / 2, -p.h / 2, p.w, p.h);
+    } else {
+      // Sparkle Star
+      ctx.fillStyle = p.color;
+      ctx.beginPath();
+      for (let s = 0; s < 4; s++) {
+        ctx.rotate(Math.PI / 4);
+        ctx.lineTo(p.size * 2, 0);
+        ctx.lineTo(0, p.size * 2);
+      }
+      ctx.fill();
+    }
+    ctx.restore();
+  });
+
+  animFrameId = requestAnimationFrame(animateParticles);
+}
+
+function stopCelebrationAnimation() {
+  if (animFrameId) cancelAnimationFrame(animFrameId);
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  canvas.style.display = "none";
+}
+
+
+// ==========================================
+// MULTIPLAYER SOCKET.IO SYNCHRONIZATION (MULTI-ROOM SUPPORT)
+// ==========================================
+let socket = null;
+let currentRoomId = null;
+let myRole = null; // 'P1' (Hunters) or 'P2' (Defenders)
+
+function initSocketConnection() {
+  if (typeof io !== 'undefined') {
+    socket = io();
+
+    // Render open rooms waiting for an opponent
+    socket.on('open_rooms_list', (openRooms) => {
+      const listEl = document.getElementById("openRoomsList");
+      if (!listEl) return;
+      if (!openRooms || openRooms.length === 0) {
+        listEl.innerHTML = '<span style="font-style:italic;">No rooms currently waiting. Create one above!</span>';
+        return;
+      }
+      listEl.innerHTML = openRooms.map(r => 
+        `<button class="btn btn-secondary" style="font-size:11px; padding:4px 10px;" onclick="joinSpecificRoom('${r.id}')">
+          🚪 Join ${r.id} (Host: ${r.hostName})
+        </button>`
+      ).join(' ');
+    });
+
+    socket.on('player_assigned', (data) => {
+      myRole = data.role;
+      currentRoomId = data.room;
+      document.getElementById("roomInput").value = currentRoomId;
+      const status = document.getElementById("onlineStatus");
+
+      if (myRole === 'P1') {
+        status.innerHTML = `🟢 Room <strong>${currentRoomId}</strong>: Created by You (${player1Name}). Share code <strong>${currentRoomId}</strong> with your friend!`;
+        status.style.color = "#f87171";
+      } else {
+        status.innerHTML = `🟢 Room <strong>${currentRoomId}</strong>: Joined as <strong>${player2Name}</strong>. Ready!`;
+        status.style.color = "#38bdf8";
+      }
+    });
+
+    socket.on('game_ready', (data) => {
+      currentRoomId = data.room;
+      player1Name = data.player1;
+      player2Name = data.player2;
+      document.getElementById("labelPlayer1").textContent = player1Name;
+      document.getElementById("labelPlayer2").textContent = player2Name;
+      document.getElementById("onlineStatus").innerHTML = `⚔️ Match Active in Room <strong>${currentRoomId}</strong>! (${player1Name} vs ${player2Name})`;
+      document.getElementById("onlineStatus").style.color = "#4ade80";
+      resetGameLocal();
+    });
+
+    socket.on('opponent_moved', (data) => {
+      p1Pieces = data.p1Pieces;
+      p2Pieces = data.p2Pieces;
+      reserveP2 = data.reserveP2;
+      eliminatedP2 = data.eliminatedP2;
+      turn = data.turn;
+      firstP1Turn = data.firstP1Turn;
+      openingP1Index = data.openingP1Index;
+      totalMoves = data.totalMoves;
+      p2Mode = data.p2Mode;
+      playTone(data.soundFreq || 380, 'sine', 0.1);
+      renderBoard();
+      checkWinConditions();
+    });
+
+    socket.on('game_reset_sync', () => {
+      resetGameLocal();
+    });
+
+    socket.on('room_full', (data) => {
+      alert(`Room ${data.room} is already full with 2 players! Please enter a different room code.`);
+    });
+
+    socket.on('player_disconnected', () => {
+      document.getElementById("onlineStatus").innerHTML = `⚠️ Opponent disconnected from Room ${currentRoomId}.`;
+      document.getElementById("onlineStatus").style.color = "#ef4444";
+    });
+
+    // Check URL parameters for direct room join (e.g. ?room=TNK9)
+    const urlParams = new URLSearchParams(window.location.search);
+    const roomFromUrl = urlParams.get('room');
+    if (roomFromUrl) {
+      document.getElementById("roomInput").value = roomFromUrl.toUpperCase();
+      joinSpecificRoom(roomFromUrl.toUpperCase());
+    }
+  }
+}
+
+function generateRandomRoom() {
+  const code = "ROOM" + Math.floor(1000 + Math.random() * 9000);
+  document.getElementById("roomInput").value = code;
+  joinSpecificRoom(code);
+}
+
+function joinSpecificRoom(roomId) {
+  if (!roomId) return;
+  document.getElementById("roomInput").value = roomId;
+  if (!socket) initSocketConnection();
+
+  const myName = (myRole === 'P2') ? player2Name : player1Name;
+  socket.emit('join_room', { roomId: roomId, playerName: myName });
+}
+
+function joinOnlineRoom() {
+  const room = document.getElementById("roomInput").value.trim().toUpperCase();
+  if (!room) {
+    alert("Please enter or generate a Room Code!");
+    return;
+  }
+  joinSpecificRoom(room);
+}
+
+function resetGameLocal() {
+  p1Pieces = [19, 19];
+  p2Pieces = [14, 15, 16, 18, 20, 23, 24, 25];
+  reserveP2 = 16;
+  eliminatedP2 = 0;
+  turn = "P1";
+  firstP1Turn = true;
+  openingP1Index = 0;
+  selectedP1Index = null;
+  selectedP2Node = null;
+  p2Mode = "place";
+  totalMoves = 0;
+  gameOver = false;
+  document.getElementById("matchStateBadge").textContent = "Active";
+  document.getElementById("matchStateBadge").style.color = "var(--accent-gold)";
+  renderBoard();
+}
+
+function broadcastMove(soundFreq = 380) {
+  if (socket && currentRoomId) {
+    socket.emit('make_move', {
+      roomId: currentRoomId,
+      moveData: {
+        p1Pieces,
+        p2Pieces,
+        reserveP2,
+        eliminatedP2,
+        turn,
+        firstP1Turn,
+        openingP1Index,
+        totalMoves,
+        p2Mode,
+        soundFreq
+      }
+    });
+  }
+}
+
+window.onload = () => {
+  initSocketConnection();
+  renderBoard();
+  openNameModal(); // Prompt players for names on launch
+};
+</script>
+</body>
+</html>

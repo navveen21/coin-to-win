@@ -1,0 +1,13 @@
+{
+  "name": "coin-to-win-multiplayer",
+  "version": "1.0.0",
+  "description": "Multiplayer Coin to Win Board Game by TNK Games",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "socket.io": "^4.7.2"
+  }
+}
